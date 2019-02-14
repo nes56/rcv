@@ -21,9 +21,9 @@ def find_distance_by_coordinates(
     print("dy = {}".format(dy))
     x_diviation_degree = (
         # adding the turning angle to the angle calculated by pixels
-        # x_turning angle is positive if the camera is turned to the right
-        # and negative if to the left
-        float(abs(dx-(x_pixels_per_degree * x_turning_angle))) 
+        # x_turning angle is negative if the camera is turned to the right
+        # and positive if to the left
+        float(dx-(x_pixels_per_degree * x_turning_angle))
         / float(x_pixels_per_degree)
         )
     # adding the y leaning angle to the angle calculated by pixels
