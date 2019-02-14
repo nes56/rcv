@@ -15,13 +15,16 @@ def find_distance_by_coordinates(
     print("y_pixels_per_degree = {}".format(y_pixels_per_degree))
     x_center = width/2
     y_center = height/2
-    dy = y - y_center
-    dx = abs(x - x_center)
+    dy = y - y_center   
+    dx = x - x_center
     print("dx = {}".format(dx))
     print("dy = {}".format(dy))
-    # adding the turning angle to the angle calculated by pixels
-    x_diviation_degree = x_turning_angle + (
-        float(dx) / float(x_pixels_per_degree)
+    x_diviation_degree = (
+        # adding the turning angle to the angle calculated by pixels
+        # x_turning angle is positive if the camera is turned to the right
+        # and negative if to the left
+        float(abs(dx-(x_pixels_per_degree * x_turning_angle))) 
+        / float(x_pixels_per_degree)
         )
     # adding the y leaning angle to the angle calculated by pixels
     y_diviation_degree = float(y_leaning_angle) + (
@@ -32,5 +35,5 @@ def find_distance_by_coordinates(
     # calculating distance from camera base to (x_center, y)
     d_to_x_center_y = camera_height/math.tan(math.radians(y_diviation_degree))
     # calculating distance from camera base to (x,y)
-    d_to_x_y = d_to_x_center_y / math.cos(math.radians(x_diviation_degree))
-    return d_to_x_center_y
+    d_to_x_y = d_to_x_center_y/math.cos(math.radians(x_diviation_degree))
+    return d_to_x_y
