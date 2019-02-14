@@ -13,18 +13,6 @@ image_orig = None
 image_copy = None
 
 
-class XOrientation(Enum):
-    left = -1
-    center = 0
-    right = 1
-
-
-class YOrientation(Enum):
-    up = -1
-    center = 0
-    down = 1
-
-
 def find_distance_by_coordinates(
     x, y, image_shape, camera_height, y_leaning_angle, x_turning_angle
 ):
@@ -61,50 +49,10 @@ def find_distance_by_coordinates(
 
 def draw_measure_box(x, y):
     global image_copy
-    height, width = image_copy.shape[0:2]        
-    x_orientation = XOrientation.center
-    y_orientation = YOrientation.center
-    x_center = width/2
-    y_center = height/2
-    if x > x_center:
-        x_orientation = XOrientation.right
-    elif x < x_center:
-        x_orientation = XOrientation.left
-    if y > y_center:
-        y_orientation = YOrientation.down
-    elif y < y_center:
-        y_orientation = YOrientation.up
-    # calculating the quadrants
-    o_sum = x_orientation.value + y_orientation.value
-    q = -1
-    if o_sum == 2:
-        q = 4
-    elif o_sum == -2:
-        q = 2
-    elif o_sum == 0:
-        if x_orientation.value > y_orientation.value:
-            q = 1
-        if x_orientation.value < y_orientation.value:
-            q = 3
-    # drawing the box
-    top_left = None
-    bottom_right = None
-    # implemented quadrants 1 and 2
-    if q == 1:
-        top_left = (int(x_center), int(y))
-        bottom_right = (int(x), int(y_center))
-    elif q == 2:
-        top_left = (int(x), int(y))
-        bottom_right = (int(x_center), int(y_center))
-    elif q == 3:
-        top_left = (int(x), int(y_center))
-        bottom_right = (int(x_center), int(y))
-    elif q == 4:
-        top_left = (int(x_center), int(y_center))
-        bottom_right = (int(x), int(y))
-    print("top_left = {}".format(top_left))
-    print("bottom_right = {}".format(bottom_right))
-    image_copy = cv2.rectangle(image_copy, top_left, bottom_right,
+    height, width = image_copy.shape[0:2]
+    x_center = int(width/2)
+    y_center = int(height/2)
+    image_copy = cv2.rectangle(image_copy, (x, y), (x_center, y_center),
                                (0, 255, 0), 2)
     distance = find_distance_by_coordinates(
         x, y, image_copy.shape, camera_height, y_leaning_angle, x_turning_angle
