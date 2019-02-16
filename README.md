@@ -33,5 +33,5 @@ python measure_distance_on_mouse_click.py --image=images_height_38.5_y_angle_28\
 ```
 ## how to test line detection
 ```
-python find_line.py --image="images_height_43.3\img2_d200_c-20_d134.jpg"
+python find_line.py --image="images_height_43.3\img2_d200_c-20_d134.jpg" --show=True
 ```
