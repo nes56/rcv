@@ -119,8 +119,8 @@ def do_work(image):
     line_countour = find_line_contour(cleaned_image)
     if line_countour is not None:
         points = extermum_points(line_countour)
-        if(show):
-            show_images(image)
+    if(show):
+        show_images(image)
 
 
 def main():
