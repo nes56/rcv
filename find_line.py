@@ -4,6 +4,21 @@ import sys
 import os
 import argparse
 
+def show_images(image):
+    cv2.imshow("image", image)
+    cv2.imshow("cleaned_image", cleaned_image)
+        # show image with the rectangle marked,
+        # if none found will show regular image       
+    output = image.copy()
+    if line_countour is not None:
+        output = cv2.drawContours(
+            output, [line_countour],
+            -1, (0, 0, 255), 4
+        )   
+    cv2.imshow("output", output)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 
 def find_line_contour(image):
     # every ratio of circumscribing box to contour
@@ -57,45 +72,40 @@ def clean_image(image):
         thresh, cv2.MORPH_OPEN, kernel, iterations=1
         )
     # blur the image to dull the image
-    blurred = cv2.GaussianBlur(thresh_opened, (5, 5), 0)
-    cv2.imshow("blurred", blurred)
+    blurred = cv2.GaussianBlur(thresh_opened, (5, 5), 0)    
     return blurred
 
 
-def do_work(image_path):
-    # read the image into image
-    image = cv2.imread(image_path)
-    cv2.imshow("image", image)
+def do_work(image):
+    global cleaned_image
+    global line_countour    
     # clean the image
-    cleaned_image = clean_image(image)
+    cleaned_image = clean_image(image)    
     # find the best contour in the cleaned image
     line_countour = find_line_contour(cleaned_image)
-    # show image with the rectangle marked,
-    # if none found will show regular image
-    output = image.copy()
-    if line_countour is not None:
-        output = cv2.drawContours(
-            output, [line_countour],
-            -1, (0, 0, 255), 4
-        )
-    cv2.imshow("output", output)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    if line_countour is not None:        
+        if(show):
+            show_images(image)        
 
 
 def main():
+    global show
     # parser to get image path
     parser_description = "detects the white line in an image"
     parser = argparse.ArgumentParser(description=parser_description)
     parser.add_argument('--image', type=str, required=True,
                         help='path of the image to process')
+    parser.add_argument('--show', type=bool, default=False,
+                        help='show images or not')
     args = parser.parse_args()
     if not os.path.isfile(args.image):
         print('Please provide a valid path to an image file')
         sys.exit(-1)
     image_path = args.image
-    # do work on the image path
-    do_work(image_path)
+    show = args.show
+    image = cv2.imread(image_path)
+    # do work on the image
+    do_work(image)
 
 
 if __name__ == '__main__':
