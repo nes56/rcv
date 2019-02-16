@@ -19,7 +19,7 @@ def averge_point(p1, p2):
     x2 = p2[0]
     y1 = p1[1]
     y2 = p2[1]
-    return((x1 + x2)/2, (y1 + y2)/2)
+    return(int((x1 + x2)/2), int((y1 + y2)/2))
 
 
 def show_images(image):
@@ -33,6 +33,8 @@ def show_images(image):
             output, [line_countour],
             -1, (0, 0, 255), 4
         )
+        output = cv2.circle(output, points[0], 3, (255, 0, 0), -1)
+        output = cv2.circle(output, points[1], 3, (255, 0, 0), -1)
     cv2.imshow("output", output)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
@@ -110,12 +112,13 @@ def clean_image(image):
 def do_work(image):
     global cleaned_image
     global line_countour
+    global points
     # clean the image
     cleaned_image = clean_image(image)
     # find the best contour in the cleaned image
     line_countour = find_line_contour(cleaned_image)
     if line_countour is not None:
-        points = extermum_points(line_countour)    
+        points = extermum_points(line_countour)
         if(show):
             show_images(image)
 
