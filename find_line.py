@@ -2,22 +2,53 @@ import cv2
 import numpy as np
 import sys
 import os
+import math
 import argparse
+
+
+def line_distance(p1, p2):
+    x1 = p1[0]
+    x2 = p2[0]
+    y1 = p1[1]
+    y2 = p2[1]
+    return math.sqrt((x1-x2)**2 + (y1 - y2)**2)
+
+
+def averge_point(p1, p2):
+    x1 = p1[0]
+    x2 = p2[0]
+    y1 = p1[1]
+    y2 = p2[1]
+    return((x1 + x2)/2, (y1 + y2)/2)
+
 
 def show_images(image):
     cv2.imshow("image", image)
     cv2.imshow("cleaned_image", cleaned_image)
-        # show image with the rectangle marked,
-        # if none found will show regular image       
+    # show image with the rectangle marked,
+    # if none found will show regular image
     output = image.copy()
     if line_countour is not None:
         output = cv2.drawContours(
             output, [line_countour],
             -1, (0, 0, 255), 4
-        )   
+        )
     cv2.imshow("output", output)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+
+def extermum_points(contour):
+    min_distance = sys.maxsize
+    line_top = (0, 0)
+    line_bot = (0, 0)
+    for i in range(0, 2):
+        dis = line_distance(contour[i], contour[i+1])
+        if dis < min_distance:
+            min_distance = dis
+            line_top = averge_point(contour[i], contour[i + 1])
+            line_bot = averge_point(contour[i + 2], contour[(i + 3) % 4])
+    return (line_top, line_bot)
 
 
 def find_line_contour(image):
@@ -54,7 +85,7 @@ def find_line_contour(image):
         # find whether the current rectangle to contour ratio
         # is smaller than our current best
         if box_area / contour_area < min_ratio:
-            cont = approx
+            cont = box
             min_ratio = box_area / contour_area
     return cont
 
@@ -72,20 +103,21 @@ def clean_image(image):
         thresh, cv2.MORPH_OPEN, kernel, iterations=1
         )
     # blur the image to dull the image
-    blurred = cv2.GaussianBlur(thresh_opened, (5, 5), 0)    
+    blurred = cv2.GaussianBlur(thresh_opened, (5, 5), 0)
     return blurred
 
 
 def do_work(image):
     global cleaned_image
-    global line_countour    
+    global line_countour
     # clean the image
-    cleaned_image = clean_image(image)    
+    cleaned_image = clean_image(image)
     # find the best contour in the cleaned image
     line_countour = find_line_contour(cleaned_image)
-    if line_countour is not None:        
+    if line_countour is not None:
+        points = extermum_points(line_countour)    
         if(show):
-            show_images(image)        
+            show_images(image)
 
 
 def main():
