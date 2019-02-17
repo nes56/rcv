@@ -1,106 +1,27 @@
 import argparse
 import cv2
-from enum import Enum
-import math
 import numpy as np
 import os
 import sys
+from find_parameters_by_coordinates import find_distance_by_coordinates
 
 
-# GLOBALS #
-# the below 2 globals were calculated using calculate_pixels_per_degree.py utility
-X_PIXELS_PER_DEGREE = {640: 12.452453991885616, 320: 6.226226995942808}
-Y_PIXELS_PER_DEGREE = {480: 12.216701907035985, 240: 6.108350953517992}
 image_cleared = True
 image_orig = None
 image_copy = None
 
 
-class XOrientation(Enum):
-    left = -1
-    center = 0
-    right = 1
-
-
-class YOrientation(Enum):
-    up = -1
-    center = 0
-    down = 1
-
-
 def draw_measure_box(x, y):
     global image_copy
     height, width = image_copy.shape[0:2]
-    print("***********************************")
-    print("camera_height = {}".format(camera_height))
-    print("x = {} , y = {}".format(x, y))
-    x_center = width/2
-    y_center = height/2
-    x_pixels_per_degree = X_PIXELS_PER_DEGREE[width]
-    y_pixels_per_degree = Y_PIXELS_PER_DEGREE[height]
-    print("x_pixels_per_degree = {}".format(x_pixels_per_degree))
-    print("y_pixels_per_degree = {}".format(y_pixels_per_degree))
-    x_orientation = XOrientation.center
-    y_orientation = YOrientation.center
-    if x > x_center:
-        x_orientation = XOrientation.right
-    elif x < x_center:
-        x_orientation = XOrientation.left
-    if y > y_center:
-        y_orientation = YOrientation.down
-    elif y < y_center:
-        y_orientation = YOrientation.up
-    # calculating the quadrants
-    o_sum = x_orientation.value + y_orientation.value
-    q = -1
-    if o_sum == 2:
-        q = 4
-    elif o_sum == -2:
-        q = 2
-    elif o_sum == 0:
-        if x_orientation.value > y_orientation.value:
-            q = 1
-        if x_orientation.value < y_orientation.value:
-            q = 3
-    # drawing the box
-    top_left = None
-    bottom_right = None
-    # implemented quadrants 1 and 2
-    if q == 1:
-        top_left = (int(x_center), int(y))
-        bottom_right = (int(x), int(y_center))
-    elif q == 2:
-        top_left = (int(x), int(y))
-        bottom_right = (int(x_center), int(y_center))
-    elif q == 3:
-        top_left = (int(x), int(y_center))
-        bottom_right = (int(x_center), int(y))
-    elif q == 4:
-        top_left = (int(x_center), int(y_center))
-        bottom_right = (int(x), int(y))
-    print("top_left = {}".format(top_left))
-    print("bottom_right = {}".format(bottom_right))
-    image_copy = cv2.rectangle(image_copy, top_left, bottom_right,
+    x_center = int(width/2)
+    y_center = int(height/2)
+    image_copy = cv2.rectangle(image_copy, (x, y), (x_center, y_center),
                                (0, 255, 0), 2)
-    dy = y - y_center
-    dx = abs(x - x_center)
-    print("dx = {}".format(dx))
-    print("dy = {}".format(dy))
-    # adding the turning angle to the angle calculated by pixels
-    x_diviation_degree = x_turning_angle + (
-        float(dx) / float(x_pixels_per_degree)
+    distance = find_distance_by_coordinates(
+        x, y, image_copy.shape, camera_height, y_leaning_angle, x_turning_angle
         )
-    # adding the y leaning angle to the angle calculated by pixels
-    y_diviation_degree = float(y_leaning_angle) + (
-        float(dy) / float(y_pixels_per_degree)
-        )
-    print("x_diviation_degree = {}".format(x_diviation_degree))
-    print("y_diviation_degree = {}".format(y_diviation_degree))
-    # calculating distance from camera base to (x_center, y)
-    d_to_x_center_y = camera_height/math.tan(math.radians(y_diviation_degree))
-    # calculating distance from camera base to (x,y)
-    d_to_x_y = d_to_x_center_y / math.cos(math.radians(x_diviation_degree))
-    print("distance is {}".format(d_to_x_y))
+    print("distance is {}".format(distance))
 
 
 def mouse_callback(event, x, y, flags, param):
