@@ -4,7 +4,7 @@ import logging.config
 import time
 
 
-CONFIGURATION='/opt/rcv/rcv_server.conf'
+CONFIGURATION='/opt/rcv/service/rcv_server.conf'
 
 
 class RcvService:
