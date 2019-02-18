@@ -1,12 +1,15 @@
 [Unit]
 Description=Nes56 RCV service
-After=multi-user.target
+After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /opt/rcv/rcv/rcv_server.py
+ExecStart=/usr/bin/python3 -u rcv_server.py
 WorkingDirectory=/opt/rcv/rcv/
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
 
 [Install]
-WantedBy=mutli-user.target
+WantedBy=multi-user.target
 
