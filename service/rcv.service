@@ -4,8 +4,8 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /opt/rcv/rcv_server.py
-WorkingDirectory=/opt/rcv/
+ExecStart=/usr/bin/python3 /opt/rcv/rcv/rcv_server.py
+WorkingDirectory=/opt/rcv/rcv/
 
 [Install]
 WantedBy=mutli-user.target
