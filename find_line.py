@@ -2,7 +2,55 @@ import cv2
 import numpy as np
 import sys
 import os
+import math
 import argparse
+
+
+def line_distance(p1, p2):
+    x1 = p1[0]
+    x2 = p2[0]
+    y1 = p1[1]
+    y2 = p2[1]
+    return math.sqrt((x1-x2)**2 + (y1 - y2)**2)
+
+
+def averge_point(p1, p2):
+    x1 = p1[0]
+    x2 = p2[0]
+    y1 = p1[1]
+    y2 = p2[1]
+    return(int((x1 + x2)/2), int((y1 + y2)/2))
+
+
+def show_images(image):
+    cv2.imshow("image", image)
+    cv2.imshow("cleaned_image", cleaned_image)
+    # show image with the rectangle marked,
+    # if none found will show regular image
+    output = image.copy()
+    if line_countour is not None:
+        output = cv2.drawContours(
+            output, [line_countour],
+            -1, (0, 0, 255), 4
+        )
+        output = cv2.circle(output, points[0], 3, (255, 0, 0), -1)
+        output = cv2.circle(output, points[1], 3, (255, 0, 0), -1)
+    cv2.imshow("output", output)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+
+def extermum_points(contour):
+    min_distance = sys.maxsize
+    line_top = (0, 0)
+    line_bot = (0, 0)
+    for i in range(0, 2):
+        dis = line_distance(contour[i], contour[i+1])
+        if dis < min_distance:
+            min_distance = dis
+            line_top = averge_point(contour[i], contour[i + 1])
+            line_bot = averge_point(contour[i + 2], contour[(i + 3) % 4])
+    return (line_top, line_bot)
 
 
 def find_line_contour(image):
@@ -39,7 +87,7 @@ def find_line_contour(image):
         # find whether the current rectangle to contour ratio
         # is smaller than our current best
         if box_area / contour_area < min_ratio:
-            cont = approx
+            cont = box
             min_ratio = box_area / contour_area
     return cont
 
@@ -58,44 +106,41 @@ def clean_image(image):
         )
     # blur the image to dull the image
     blurred = cv2.GaussianBlur(thresh_opened, (5, 5), 0)
-    cv2.imshow("blurred", blurred)
     return blurred
 
 
-def do_work(image_path):
-    # read the image into image
-    image = cv2.imread(image_path)
-    cv2.imshow("image", image)
+def do_work(image):
+    global cleaned_image
+    global line_countour
+    global points
     # clean the image
     cleaned_image = clean_image(image)
     # find the best contour in the cleaned image
     line_countour = find_line_contour(cleaned_image)
-    # show image with the rectangle marked,
-    # if none found will show regular image
-    output = image.copy()
     if line_countour is not None:
-        output = cv2.drawContours(
-            output, [line_countour],
-            -1, (0, 0, 255), 4
-        )
-    cv2.imshow("output", output)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+        points = extermum_points(line_countour)
+    if(show):
+        show_images(image)
 
 
 def main():
+    global show
     # parser to get image path
     parser_description = "detects the white line in an image"
     parser = argparse.ArgumentParser(description=parser_description)
     parser.add_argument('--image', type=str, required=True,
                         help='path of the image to process')
+    parser.add_argument('--show', type=bool, default=False,
+                        help='show images or not')
     args = parser.parse_args()
     if not os.path.isfile(args.image):
         print('Please provide a valid path to an image file')
         sys.exit(-1)
     image_path = args.image
-    # do work on the image path
-    do_work(image_path)
+    show = args.show
+    image = cv2.imread(image_path)
+    # do work on the image
+    do_work(image)
 
 
 if __name__ == '__main__':
