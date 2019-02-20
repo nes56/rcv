@@ -10,7 +10,6 @@ As user pi
     git clone https://github.com/nes56/rcv.git
     cd rcv
     ./install.sh
-    systemctl enable rcv.service
 ```
 
 ## runing the service
