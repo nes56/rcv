@@ -50,7 +50,7 @@ def extermum_points(contour):
             min_distance = dis
             line_top = averge_point(contour[i], contour[i + 1])
             line_bot = averge_point(contour[i + 2], contour[(i + 3) % 4])
-    return (line_top, line_bot)
+    return (line_bot, line_top)
 
 
 def find_line_contour(image):
