@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import os
 import sys
-from find_parameters_by_coordinates import find_distance_by_coordinates
+from find_parameters_by_coordinates import find_distance_and_angle_by_coordinates
 
 
 image_cleared = True
@@ -18,10 +18,11 @@ def draw_measure_box(x, y):
     y_center = int(height/2)
     image_copy = cv2.rectangle(image_copy, (x, y), (x_center, y_center),
                                (0, 255, 0), 2)
-    distance = find_distance_by_coordinates(
+    distance, x_turn_angle = find_distance_and_angle_by_coordinates(
         x, y, image_copy.shape, camera_height, y_leaning_angle, x_turning_angle
         )
     print("distance is {}".format(distance))
+    print("x_turn_angle is {}".format(x_turn_angle))
 
 
 def mouse_callback(event, x, y, flags, param):
