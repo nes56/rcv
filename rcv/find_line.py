@@ -66,8 +66,9 @@ def find_line_contour(image):
     for c in contours:
         contour_area = cv2.contourArea(c)
         # the contour we are searching for won't be smaller
-        # than 600 and larger than 10000
-        if not (600 <= contour_area <= 10000):
+        # than 540 by our calculations of pix to degree and trigonometric
+        # and larger than 2950
+        if not (540 <= contour_area <= 2950):
             continue
         # get a parameter for how close the approximated should be
         peri = cv2.arcLength(c, True)
