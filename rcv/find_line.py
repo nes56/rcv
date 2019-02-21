@@ -36,8 +36,7 @@ def show_images(image):
         output = cv2.circle(output, points[0], 3, (255, 0, 0), -1)
         output = cv2.circle(output, points[1], 3, (255, 0, 0), -1)
     cv2.imshow("output", output)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+   
 
 
 def extermum_points(contour):
@@ -109,7 +108,7 @@ def clean_image(image):
     return blurred
 
 
-def do_work(image):
+def do_work(image, show):
     global cleaned_image
     global line_countour
     global points
@@ -124,23 +123,39 @@ def do_work(image):
 
 
 def main():
-    global show
     # parser to get image path
     parser_description = "detects the white line in an image"
     parser = argparse.ArgumentParser(description=parser_description)
-    parser.add_argument('--image', type=str, required=True,
+    group = parser.add_mutually_exclusive_group(required=True)    
+    group.add_argument('--video', type=str,
+                        help='path of video process')
+    group.add_argument('--image', type=str,
                         help='path of the image to process')
     parser.add_argument('--show', type=bool, default=False,
                         help='show images or not')
     args = parser.parse_args()
-    if not os.path.isfile(args.image):
-        print('Please provide a valid path to an image file')
-        sys.exit(-1)
-    image_path = args.image
-    show = args.show
-    image = cv2.imread(image_path)
-    # do work on the image
-    do_work(image)
+    if args.image is not None:        
+        if not os.path.isfile(args.image):
+            print('Please provide a valid path to an image file')
+            sys.exit(-1)
+        image = cv2.imread(args.image)        
+        # do work on the image
+        do_work(image, args.show)
+        if args.show:
+            cv2.waitKey(0)
+    if args.video is not None:
+        if not os.path.isfile(args.video):
+            print('Please provide a valid path to a video file')
+            sys.exit(-1)
+        video = cv2.VideoCapture(args.video)
+        video.set(cv2.CAP_PROP_FPS, 1)
+        while video.isOpened():
+            ret, frame = video.read()
+            if cv2.waitKey(int(1000 / 30)) == ord('q') or not ret:
+                break
+            do_work(frame, True)
+        video.release()
+    cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
