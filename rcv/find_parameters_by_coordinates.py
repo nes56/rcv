@@ -2,7 +2,7 @@ import math
 from constants import X_PIXELS_PER_DEGREE, Y_PIXELS_PER_DEGREE
 
 
-def find_distance_by_coordinates(
+def find_distance_and_angle_by_coordinates(
     x, y, image_shape, camera_height, y_leaning_angle, x_turning_angle
 ):
     height, width = image_shape[0:2]
@@ -36,4 +36,4 @@ def find_distance_by_coordinates(
     d_to_x_center_y = camera_height/math.tan(math.radians(y_diviation_degree))
     # calculating distance from camera base to (x,y)
     d_to_x_y = d_to_x_center_y/math.cos(math.radians(x_diviation_degree))
-    return d_to_x_y
+    return (d_to_x_y, x_diviation_degree)
