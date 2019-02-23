@@ -40,3 +40,15 @@ python measure_distance_on_mouse_click.py --image=images_height_38.5_y_angle_28\
 ```
 python find_line.py --image="images_height_43.3\img2_d200_c-20_d134.jpg" --show=True
 ```
+
+##how to test combine modules
+
+on image
+```
+python rcv\combine_modules.py --image=rcv\images_height_23.3\img5_d150_c0_d0.jpg --show=True
+```
+
+on video
+```
+python rcv\combine_modules.py --video=rcv\practice_videos\video_2_320_240.avi
+```
