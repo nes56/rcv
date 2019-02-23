@@ -109,10 +109,11 @@ def clean_image(image):
     return blurred
 
 
-def do_work(image, show):
+def do_work(image, show=False):
     global cleaned_image
     global line_countour
     global points
+    points = None
     # clean the image
     cleaned_image = clean_image(image)
     # find the best contour in the cleaned image
@@ -121,6 +122,7 @@ def do_work(image, show):
         points = extermum_points(line_countour)
     if(show):
         show_images(image)
+    return points
 
 
 def main():
