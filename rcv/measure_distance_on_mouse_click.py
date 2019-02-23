@@ -19,7 +19,7 @@ def draw_measure_box(x, y):
     image_copy = cv2.rectangle(image_copy, (x, y), (x_center, y_center),
                                (0, 255, 0), 2)
     distance, x_turn_angle = find_distance_and_angle_by_coordinates(
-        x, y, image_copy.shape, camera_height, y_leaning_angle, x_turning_angle
+        x, y, image_copy.shape, camera_height, y_leaning_angle, x_turning_angle, show=True
         )
     print("distance is {}".format(distance))
     print("x_turn_angle is {}".format(x_turn_angle))
@@ -54,7 +54,6 @@ def do_work(img):
              (0, 0, 0), 1)
     cv2.line(image_copy, (int(width/2), 0), (int(width/2), int(height)),
              (0, 0, 0), 1)
-
     while True:
         cv2.imshow('Image', image_copy)
         k = cv2.waitKey(10)
