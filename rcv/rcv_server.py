@@ -2,9 +2,21 @@ import configparser
 import logging
 import logging.config
 import time
+import signal
 
 
 CONFIGURATION='/opt/rcv/service/rcv_server.conf'
+rcv = None
+
+
+def exit_gracefully(signum, frame):
+    global rcv
+    logging.info("In exit_gracefully({}, {})".format(signum, frame)) 
+    if rcv:
+        rcv.stop()
+
+
+signal.signal(signal.SIGTERM, exit_gracefully)
 
 
 class RcvService:
@@ -39,11 +51,12 @@ class RcvService:
             logging.debug("{}) ##### In loop ...".format(counter))
             time.sleep(2)
             counter += 1
-            if counter == 10:
+            if counter == 100:
                 self._stop = True
+        logging.info("Exiting ....")
 
 
 if __name__ == '__main__':
+    global rcv
     rcv = RcvService()
     rcv.do_work()
-    logging.info("Exiting ....")
