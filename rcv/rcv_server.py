@@ -1,11 +1,11 @@
 import configparser
+import constants
 import logging
 import logging.config
+import rcv_utils
 import time
 import signal
 
-
-CONFIGURATION='/opt/rcv/service/rcv_server.conf'
 rcv = None
 
 
@@ -22,25 +22,9 @@ signal.signal(signal.SIGTERM, exit_gracefully)
 class RcvService:
     def __init__(self):
         self._stop = False
-        self._roborio_ip = None
-        self._roborio_port = None
-        self.load_configuration()
-        self.init_logging()
-        logging.info("self.__roborio_ip = {}".format(self._roborio_ip))
-        logging.info("self.__roborio_port = {}".format(self._roborio_port))
+        rcv_utils.init_logging(constants.CONFIGURATION)
+        self._conf = rcv_utils.load_configuration(constants.CONFIGURATION)
 
-    def load_configuration(self):
-        conf = configparser.ConfigParser()
-        conf.read(CONFIGURATION)
-        self._roborio_ip = conf.get('rcv_server', 'roborio_ip')
-        self._roborio_port = conf.get('rcv_server', 'roborio_port')
-
-    def init_logging(self):
-        logging.config.fileConfig(fname=CONFIGURATION)
-        logging.info("Started....")
-
-    def init_threads(self):
-        pass
 
     def stop(self):
         self._stop = True
@@ -57,6 +41,5 @@ class RcvService:
 
 
 if __name__ == '__main__':
-    global rcv
     rcv = RcvService()
     rcv.do_work()
