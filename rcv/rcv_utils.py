@@ -1,5 +1,6 @@
 import configparser
 import logging
+import logging.config
 
 
 def load_configuration(config_file):

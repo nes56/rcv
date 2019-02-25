@@ -1,7 +1,6 @@
 import configparser
 import constants
 import logging
-import logging.config
 import rcv_utils
 import time
 import signal
