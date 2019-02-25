@@ -28,7 +28,9 @@ def show_images(image):
     # show image with the rectangle marked,
     # if none found will show regular image
     output = image.copy()
-    if line_countour is not None:
+    focus_image = cv2.imread('rcv' + os.sep + 'resources' + os.sep + 'robot_focus.jpg')        
+    output = cv2.bitwise_and(output, focus_image)
+    if line_countour is not None:            
         output = cv2.drawContours(
             output, [line_countour],
             -1, (0, 0, 255), 4
@@ -98,9 +100,11 @@ def clean_image(image):
     # get a gray copy of image
     gray = cv2.cvtColor(
         image[0:image.shape[0], 0:image.shape[1]], cv2.COLOR_BGR2GRAY
-        )
+        )    
+    focus_image = cv2.imread('rcv' + os.sep + 'resources' + os.sep + 'robot_focus.jpg', cv2.IMREAD_GRAYSCALE)
+    focused_image = cv2.bitwise_and(gray, focus_image)
     # use threshold on image
-    _, thresh = cv2.threshold(gray, 210, 255, cv2.THRESH_BINARY)
+    _, thresh = cv2.threshold(focused_image, 210, 255, cv2.THRESH_BINARY)
     # use open to remove white noise from image
     kernel = np.ones((5, 5), np.uint8)
     thresh_opened = cv2.morphologyEx(
