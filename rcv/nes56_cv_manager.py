@@ -1,8 +1,11 @@
 import constants
+import cv2
 import json
-import rcv_utils
 import logging
+import os
+import rcv_utils
 import socket
+
 
 
 # globals
@@ -19,9 +22,17 @@ class Nes56CvManager():
         logging.debug("entered Nes56CvManager.__init__(...)")
         self._conf = conf
         self._client_socket = None
+        self._cap = None
+        self._width = None
+        self._height = None
+        self._video_source_type = None
+        self._video_source = None
+        self._camera_name = None
+        self._fps = None
         self._roborio_ip = conf.get('rcv_server', 'roborio_ip')
         self._roborio_port = int(conf.get('rcv_server', 'roborio_port'))
         self._socket_timeout = int(conf.get('rcv_server', 'socket_timeout'))
+        self._show = bool(conf.get('rcv_server', 'show'))
 
     def __enter__(self):
         return self
@@ -30,9 +41,27 @@ class Nes56CvManager():
         logging.debug("Entered Nes56CvManager.__exit__(..)")
         if self._client_socket:
             self._client_socket.close()
+        if self._cap:
+            self._cap.realease()
 
     def init_video_source(self):
-
+        logging.debug("Enetered Nes56CvManager.init_video_source()")
+        self._video_source_type, self._video_source = conf.get('rcv_server', 'video_source').split(':')
+        if self._video_source_type == 'camera':
+            self._video_source = int(self._video_source)
+            self._height = float(conf.get('rcv_server', 'height'))
+            self._width = float(conf.get('rcv_server', 'width'))
+            self._camera_name = conf.get('rcv_server', 'camera_name')
+            self._fps = float(conf.get('rcv_server', 'fps'))
+        elif self._video_source_type == 'video':
+            self._camera_name = os.path.basename(self._video_source)
+        else:
+            raise ValueError("Unsupported video_source - '{}'".format(self._video_source_type))
+        self._cap = cv2.VideoCapture(self._video_source)
+        if self._video_source_type == 'camera':
+            self._cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+            self._cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+            self._cap.set(cv2.CAP_PROP_FPS, fps)
 
     def connect_to_roborio(self):
         logging.debug("entered Nes56CvManager.connect_to_roborio")
@@ -74,8 +103,9 @@ if __name__ == '__main__':
     conf = rcv_utils.load_configuration(constants.CONFIGURATION)
     with Nes56CvManager(conf) as rcv_manager:
         rcv_manager.connect_to_roborio()
-        for i in range(10):
-            rcv_manager.send_data_to_roborio(json.dumps(API_structure))
+        rcv_manager.init_video_source
+        #for i in range(10):
+        #    rcv_manager.send_data_to_roborio(json.dumps(API_structure))
 
 
 
