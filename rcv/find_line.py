@@ -5,6 +5,10 @@ import os
 import math
 import argparse
 
+cleaned_image = None
+line_countour = None
+points = None
+
 
 def line_distance(p1, p2):
     x1 = p1[0]
@@ -36,7 +40,7 @@ def show_images(image):
             -1, (0, 0, 255), 4
         )
         output = cv2.circle(output, points[0], 3, (255, 0, 0), -1)
-        output = cv2.circle(output, points[1], 3, (255, 0, 0), -1)
+        output = cv2.circle(output, points[1], 3, (0, 255, 0), -1)
     cv2.imshow("output", output)
 
 

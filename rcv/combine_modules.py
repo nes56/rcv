@@ -6,17 +6,8 @@ import argparse
 import os
 import sys
 
-def init(cap_id=0, init_cap=True):
-    global cap
-    global points_dictionary
-    # if we test on image we don't want to try to open a camera
-    if init_cap:
-        cap = cv2.VideoCapture(cap_id)
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
-        cap.set(cv2.CAP_PROP_FPS, 30)
-    # intialize the data structre of what we return as a json
-    points_dictionary = {
+# intialize the data structre of what we return as a json
+points_dictionary = {
         "front": False,
         "found": False,
         "p1": {"d": 0, "a": 0},
@@ -24,7 +15,17 @@ def init(cap_id=0, init_cap=True):
     }
 
 
-def get_data(frame=None, show=False):
+def init(cap_id=0, init_cap=True):
+    global cap
+    # if we test on image we don't want to try to open a camera
+    if init_cap:
+        cap = cv2.VideoCapture(cap_id)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+        cap.set(cv2.CAP_PROP_FPS, 30)
+
+
+def get_data(camera_height=38.5, y_leaning_angle=25, x_turning_angle=0, frame=None, show=False):
     global points_dictionary
     # if the functions works on image then frame won't be equal None
     # if it it got None as frame it reads frame from the capture
@@ -46,12 +47,12 @@ def get_data(frame=None, show=False):
         # we return as json
         points_dictionary["found"] = True
         d1, a1 = find_distance_and_angle_by_coordinates(
-            points[0][0], points[0][1], frame.shape, 38.5, 25, 0
+            points[0][0], points[0][1], frame.shape, camera_height, y_leaning_angle, x_turning_angle
         )
         points_dictionary["p1"]["d"] = d1
         points_dictionary["p1"]["a"] = a1
         d2, a2 = find_distance_and_angle_by_coordinates(
-            points[1][0], points[1][1], frame.shape, 38.5, 25, 0
+            points[1][0], points[1][1], frame.shape, camera_height, y_leaning_angle, x_turning_angle
         )
         points_dictionary["p2"]["d"] = d2
         points_dictionary["p2"]["a"] = a2
@@ -93,14 +94,11 @@ def main():
             print(data)
             cv2.waitKey(0)
     if args.video is not None:
-        if args.video == '0':
-            init()
-        elif not os.path.isfile(args.video):
+        if not os.path.isfile(args.video):
             print('Please provide a valid path to a video file')
             sys.exit(-1)
-        else:
-            # intialize cap as the video that was given
-            init(args.video)
+        # intialize cap as the video that was given
+        init(args.video)
         # if the program is ran on video display the images anyway
         data = get_data(show=True)
         # if the video is over data will be false
