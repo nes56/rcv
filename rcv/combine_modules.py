@@ -4,7 +4,7 @@ from find_parameters_by_coordinates import find_distance_and_angle_by_coordinate
 import json
 import argparse
 import os
-
+import sys
 
 def init(cap_id=0, init_cap=True):
     global cap
@@ -12,6 +12,9 @@ def init(cap_id=0, init_cap=True):
     # if we test on image we don't want to try to open a camera
     if init_cap:
         cap = cv2.VideoCapture(cap_id)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+        cap.set(cv2.CAP_PROP_FPS, 30)
     # intialize the data structre of what we return as a json
     points_dictionary = {
         "front": False,
@@ -90,17 +93,19 @@ def main():
             print(data)
             cv2.waitKey(0)
     if args.video is not None:
-        if not os.path.isfile(args.video):
+        if args.video == '0':
+            init()
+        elif not os.path.isfile(args.video):
             print('Please provide a valid path to a video file')
             sys.exit(-1)
-        # intialize cap as the video that was given
-        init(args.video)
+        else:
+            # intialize cap as the video that was given
+            init(args.video)
         # if the program is ran on video display the images anyway
         data = get_data(show=True)
         # if the video is over data will be false
         while data != False:
             # display the data of every frame in the video
-            print(data)
             # wait a specific time so the video will be played in correct speed
             # if q is pressed the program will quit
             if cv2.waitKey(int(1000 / 30)) == ord('q'):
