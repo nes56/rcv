@@ -4,9 +4,9 @@ from combine_modules import get_data, init
 import logging
 
 def send_data():
-    logging.debug("sending data")
     global connection_available
-    data = get_data()
+    logging.debug("sending data")
+    data = get_data().encode('utf-8')
     try:
         client_socket.sendall(data)
         logging.debug("sent succesfully")
@@ -33,6 +33,7 @@ def establish_connection():
         client_socket.close()
         return False
     else:
+        init()
         logging.debug("connected")
         return True
 
@@ -49,15 +50,13 @@ def main():
     global ip
     global port
     global connection_available
-    ip = '127.0.0.1'
+    ip = '10.56.35.2'
     port = 5801
-    connection_available = False   
+    connection_available = False
     logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(message)s',
-                    filename='/home/pi/rcv/logs/myapp.log',
+                    filename='/home/pi/rcv/logs/socket_client.log',
                     filemode='w')
-    init()
-    logging.debug("intialized camera succesfully")
     while True:
         connect_and_send()
 
