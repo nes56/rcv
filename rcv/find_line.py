@@ -30,7 +30,7 @@ def show_images(image):
     output = image.copy()
     focus_image = cv2.imread('resources' + os.sep + 'robot_focus.jpg')
     output = cv2.bitwise_and(output, focus_image)
-    if line_countour is not None:            
+    if line_countour is not None:
         output = cv2.drawContours(
             output, [line_countour],
             -1, (0, 0, 255), 4
@@ -38,7 +38,6 @@ def show_images(image):
         output = cv2.circle(output, points[0], 3, (255, 0, 0), -1)
         output = cv2.circle(output, points[1], 3, (255, 0, 0), -1)
     cv2.imshow("output", output)
-   
 
 
 def extermum_points(contour):
@@ -100,8 +99,10 @@ def clean_image(image):
     # get a gray copy of image
     gray = cv2.cvtColor(
         image[0:image.shape[0], 0:image.shape[1]], cv2.COLOR_BGR2GRAY
-        )    
-    focus_image = cv2.imread('resources' + os.sep + 'robot_focus.jpg', cv2.IMREAD_GRAYSCALE)
+        )
+    focus_image = cv2.imread(
+        'resources' + os.sep + 'robot_focus.jpg', cv2.IMREAD_GRAYSCALE
+        )
     focused_image = cv2.bitwise_and(gray, focus_image)
     # use threshold on image
     _, thresh = cv2.threshold(focused_image, 210, 255, cv2.THRESH_BINARY)
@@ -135,19 +136,25 @@ def main():
     # parser to get image path
     parser_description = "detects the white line in an image"
     parser = argparse.ArgumentParser(description=parser_description)
-    group = parser.add_mutually_exclusive_group(required=True)    
-    group.add_argument('--video', type=str,
-                        help='path of video process')
-    group.add_argument('--image', type=str,
-                        help='path of the image to process')
-    parser.add_argument('--show', type=bool, default=False,
-                        help='show images or not')
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        '--video', type=str,
+        help='path of video process'
+        )
+    group.add_argument(
+        '--image', type=str,
+        help='path of the image to process'
+        )
+    parser.add_argument(
+        '--show', type=bool, default=False,
+        help='show images or not'
+        )
     args = parser.parse_args()
-    if args.image is not None:        
+    if args.image is not None:
         if not os.path.isfile(args.image):
             print('Please provide a valid path to an image file')
             sys.exit(-1)
-        image = cv2.imread(args.image)        
+        image = cv2.imread(args.image)
         # do work on the image
         do_work(image, args.show)
         if args.show:
