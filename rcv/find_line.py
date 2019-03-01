@@ -28,7 +28,7 @@ def show_images(image):
     # show image with the rectangle marked,
     # if none found will show regular image
     output = image.copy()
-    focus_image = cv2.imread('rcv' + os.sep + 'resources' + os.sep + 'robot_focus.jpg')        
+    focus_image = cv2.imread('resources' + os.sep + 'robot_focus.jpg')
     output = cv2.bitwise_and(output, focus_image)
     if line_countour is not None:            
         output = cv2.drawContours(
@@ -101,7 +101,7 @@ def clean_image(image):
     gray = cv2.cvtColor(
         image[0:image.shape[0], 0:image.shape[1]], cv2.COLOR_BGR2GRAY
         )    
-    focus_image = cv2.imread('rcv' + os.sep + 'resources' + os.sep + 'robot_focus.jpg', cv2.IMREAD_GRAYSCALE)
+    focus_image = cv2.imread('resources' + os.sep + 'robot_focus.jpg', cv2.IMREAD_GRAYSCALE)
     focused_image = cv2.bitwise_and(gray, focus_image)
     # use threshold on image
     _, thresh = cv2.threshold(focused_image, 210, 255, cv2.THRESH_BINARY)
