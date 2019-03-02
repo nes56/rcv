@@ -58,7 +58,7 @@ def extermum_points(contour):
 def find_line_contour(image):
     # every ratio of circumscribing box to contour
     # will be smaller than this number
-    min_ratio = sys.maxsize
+    min_ratio = -sys.maxsize-1
     # find the contours in the image
     _, contours, _ = cv2.findContours(
         image, cv2.RETR_EXTERNAL,
@@ -69,16 +69,15 @@ def find_line_contour(image):
     for c in contours:
         contour_area = cv2.contourArea(c)
         # the contour we are searching for won't be smaller
-        # than 540 by our calculations of pix to degree and trigonometric
+        # than 340 by our calculations of pix to degree and trigonometric
         # and larger than 2950
-        if not (540 <= contour_area <= 2950):
+        if not (340 <= contour_area <= 2950):
             continue
         # get a parameter for how close the approximated should be
         peri = cv2.arcLength(c, True)
         # get the approximated contour shape for our contour
         # each point of the approximated shape is closer then 2nd argument
         approx = cv2.approxPolyDP(c, 0.01 * peri, True)
-        # if the contour has more then 6 vertexes or less than 4 skip it
         if not(4 <= len(approx) <= 6):
             continue
         # get the circumscribing rectangle
@@ -89,9 +88,15 @@ def find_line_contour(image):
         box_area = cv2.contourArea(box)
         # find whether the current rectangle to contour ratio
         # is smaller than our current best
-        if box_area / contour_area < min_ratio:
+        M = cv2.moments(approx)
+        # calculate x,y coordinate of center
+        if M["m00"] != 0:
+            cY = int(M["m01"] / M["m00"])
+        else:
+            cY = 0
+        if min_ratio < cY:
             cont = box
-            min_ratio = box_area / contour_area
+            min_ratio = cY
     return cont
 
 
