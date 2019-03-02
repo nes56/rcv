@@ -56,9 +56,8 @@ def extermum_points(contour):
 
 
 def find_line_contour(image):
-    # every ratio of circumscribing box to contour
-    # will be smaller than this number
-    min_ratio = -sys.maxsize-1
+    # every center of mass will be closer to what we need then this one
+    fitting_mass_center = (0, -sys.maxsize-1)
     # find the contours in the image
     _, contours, _ = cv2.findContours(
         image, cv2.RETR_EXTERNAL,
@@ -77,7 +76,9 @@ def find_line_contour(image):
         peri = cv2.arcLength(c, True)
         # get the approximated contour shape for our contour
         # each point of the approximated shape is closer then 2nd argument
-        approx = cv2.approxPolyDP(c, 0.01 * peri, True)
+        # 0.02 is there because it works better on our videos
+        approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+        # if the contour has more then 6 vertexes or less than 4 skip it
         if not(4 <= len(approx) <= 6):
             continue
         # get the circumscribing rectangle
@@ -86,17 +87,39 @@ def find_line_contour(image):
         box = np.int0(box)
         # get the area of circumscribing rectangle area
         box_area = cv2.contourArea(box)
-        # find whether the current rectangle to contour ratio
-        # is smaller than our current best
+        # get the moments which will help us find the center of mass
+        # of the contour
         M = cv2.moments(approx)
         # calculate x,y coordinate of center
         if M["m00"] != 0:
             cY = int(M["m01"] / M["m00"])
+            cX = int(M["m10"] / M["m00"])
         else:
             cY = 0
-        if min_ratio < cY:
-            cont = box
-            min_ratio = cY
+            cX = 0
+        half_x = image.shape[1] / 2
+        # if the y of the center of mass of the new contour is bigger
+        # it means the contour is closer to us and is probably what we
+        # are looking for
+        if cY > fitting_mass_center[1]:
+            # if the current contour is closer in y and x to the bottom center
+            # it is out best fitting countour
+            if abs(half_x - cX) < abs(half_x - fitting_mass_center[0]):
+                cont = box
+                fitting_mass_center = (cX, cY)
+            # if the current contour has bigger y then the last one
+            # by an amount that matters it is probably what we are
+            # looking for
+            elif cY - fitting_mass_center[1] > 20:
+                cont = box
+                fitting_mass_center = (cX, cY)
+        # if the contour is closer in x to the center but doesn't have bigger Y
+        elif abs(half_x - cX) < abs(half_x - fitting_mass_center[0]):
+            # then we check if the difference in Y matters and if it does
+            # it is probably what are looking for
+            if cY - fitting_mass_center[1] > -20:
+                cont = box
+                fitting_mass_center = (cX, cY)
     return cont
 
 
