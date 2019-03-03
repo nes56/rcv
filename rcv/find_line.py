@@ -28,6 +28,8 @@ def show_images(image):
     # show image with the rectangle marked,
     # if none found will show regular image
     output = image.copy()
+    focus_image = cv2.imread('resources' + os.sep + 'robot_focus.jpg')
+    output = cv2.bitwise_and(output, focus_image)
     if line_countour is not None:
         output = cv2.drawContours(
             output, [line_countour],
@@ -36,7 +38,6 @@ def show_images(image):
         output = cv2.circle(output, points[0], 3, (255, 0, 0), -1)
         output = cv2.circle(output, points[1], 3, (255, 0, 0), -1)
     cv2.imshow("output", output)
-   
 
 
 def extermum_points(contour):
@@ -55,9 +56,8 @@ def extermum_points(contour):
 
 
 def find_line_contour(image):
-    # every ratio of circumscribing box to contour
-    # will be smaller than this number
-    min_ratio = sys.maxsize
+    # every center of mass will be closer to what we need then this one
+    fitting_mass_center = (0, -sys.maxsize-1)
     # find the contours in the image
     _, contours, _ = cv2.findContours(
         image, cv2.RETR_EXTERNAL,
@@ -68,15 +68,16 @@ def find_line_contour(image):
     for c in contours:
         contour_area = cv2.contourArea(c)
         # the contour we are searching for won't be smaller
-        # than 540 by our calculations of pix to degree and trigonometric
+        # than 340 by our calculations of pix to degree and trigonometric
         # and larger than 2950
-        if not (540 <= contour_area <= 2950):
+        if not (340 <= contour_area <= 2950):
             continue
         # get a parameter for how close the approximated should be
         peri = cv2.arcLength(c, True)
         # get the approximated contour shape for our contour
         # each point of the approximated shape is closer then 2nd argument
-        approx = cv2.approxPolyDP(c, 0.01 * peri, True)
+        # 0.02 is there because it works better on our videos
+        approx = cv2.approxPolyDP(c, 0.02 * peri, True)
         # if the contour has more then 6 vertexes or less than 4 skip it
         if not(4 <= len(approx) <= 6):
             continue
@@ -86,11 +87,39 @@ def find_line_contour(image):
         box = np.int0(box)
         # get the area of circumscribing rectangle area
         box_area = cv2.contourArea(box)
-        # find whether the current rectangle to contour ratio
-        # is smaller than our current best
-        if box_area / contour_area < min_ratio:
-            cont = box
-            min_ratio = box_area / contour_area
+        # get the moments which will help us find the center of mass
+        # of the contour
+        M = cv2.moments(approx)
+        # calculate x,y coordinate of center
+        if M["m00"] != 0:
+            cY = int(M["m01"] / M["m00"])
+            cX = int(M["m10"] / M["m00"])
+        else:
+            cY = 0
+            cX = 0
+        half_x = image.shape[1] / 2
+        # if the y of the center of mass of the new contour is bigger
+        # it means the contour is closer to us and is probably what we
+        # are looking for
+        if cY > fitting_mass_center[1]:
+            # if the current contour is closer in y and x to the bottom center
+            # it is out best fitting countour
+            if abs(half_x - cX) < abs(half_x - fitting_mass_center[0]):
+                cont = box
+                fitting_mass_center = (cX, cY)
+            # if the current contour has bigger y then the last one
+            # by an amount that matters it is probably what we are
+            # looking for
+            elif cY - fitting_mass_center[1] > 20:
+                cont = box
+                fitting_mass_center = (cX, cY)
+        # if the contour is closer in x to the center but doesn't have bigger Y
+        elif abs(half_x - cX) < abs(half_x - fitting_mass_center[0]):
+            # then we check if the difference in Y matters and if it does
+            # it is probably what are looking for
+            if cY - fitting_mass_center[1] > -20:
+                cont = box
+                fitting_mass_center = (cX, cY)
     return cont
 
 
@@ -99,8 +128,12 @@ def clean_image(image):
     gray = cv2.cvtColor(
         image[0:image.shape[0], 0:image.shape[1]], cv2.COLOR_BGR2GRAY
         )
+    focus_image = cv2.imread(
+        'resources' + os.sep + 'robot_focus.jpg', cv2.IMREAD_GRAYSCALE
+        )
+    focused_image = cv2.bitwise_and(gray, focus_image)
     # use threshold on image
-    _, thresh = cv2.threshold(gray, 210, 255, cv2.THRESH_BINARY)
+    _, thresh = cv2.threshold(focused_image, 210, 255, cv2.THRESH_BINARY)
     # use open to remove white noise from image
     kernel = np.ones((5, 5), np.uint8)
     thresh_opened = cv2.morphologyEx(
@@ -131,19 +164,25 @@ def main():
     # parser to get image path
     parser_description = "detects the white line in an image"
     parser = argparse.ArgumentParser(description=parser_description)
-    group = parser.add_mutually_exclusive_group(required=True)    
-    group.add_argument('--video', type=str,
-                        help='path of video process')
-    group.add_argument('--image', type=str,
-                        help='path of the image to process')
-    parser.add_argument('--show', type=bool, default=False,
-                        help='show images or not')
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        '--video', type=str,
+        help='path of video process'
+        )
+    group.add_argument(
+        '--image', type=str,
+        help='path of the image to process'
+        )
+    parser.add_argument(
+        '--show', type=bool, default=False,
+        help='show images or not'
+        )
     args = parser.parse_args()
-    if args.image is not None:        
+    if args.image is not None:
         if not os.path.isfile(args.image):
             print('Please provide a valid path to an image file')
             sys.exit(-1)
-        image = cv2.imread(args.image)        
+        image = cv2.imread(args.image)
         # do work on the image
         do_work(image, args.show)
         if args.show:
