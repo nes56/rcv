@@ -15,8 +15,3 @@ def init_logging(log_conf_file):
     logging.config.fileConfig(fname=log_conf_file)
     logging.info("Initialized logger ....")
 
-
-def show_image(frame):
-    cv2.imshow('debug', frame)
-    time.sleep(0.5)
-    cv2.destroyWindow('debug')

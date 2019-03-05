@@ -1,12 +1,10 @@
 import constants
 import cv2
-import combine_modules
-from find_parameters_by_coordinates import find_distance_and_angle_by_coordinates
-import json
 import logging
 import os
 import rcv_utils
 import socket
+import sys
 
 
 
@@ -38,6 +36,16 @@ class Nes56CvManager():
         self._camera_height=float(self._conf.get('rcv_server', 'camera_height'))
         self._y_leaning_angle=float(self._conf.get('rcv_server', 'y_leaning_angle'))
         self._x_turning_angle=float(self._conf.get('rcv_server', 'x_turning_angle'))
+        # Handling the dynamic load of the frame handler
+        self._frame_handler_module = self._conf.get('rcv_server', 'frame_handler')
+        self._frame_handlers_dir = self._conf.get('rcv_server', 'frame_handlers_dir')
+        handlers_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_handlers")
+        sys.path.append(handlers_path)
+        self._frame_handler_class = getattr(
+            __import__(self._frame_handler_module), "FrameHandler")
+        self._frame_handler = self._frame_handler_class(conf)
+
+
 
     def __enter__(self):
         return self
@@ -108,11 +116,10 @@ class Nes56CvManager():
         return (ret, frame)
 
     def analyze_frame(self, frame):
-        return combine_modules.get_data(self._camera_height,
+        return self._frame_handler.handle_frame(frame,
+                        self._camera_height,
                         self._y_leaning_angle,
-                        self._x_turning_angle,
-                        frame,
-                        self._show)
+                        self._x_turning_angle)
 
 
 if __name__ == '__main__':
@@ -126,6 +133,7 @@ if __name__ == '__main__':
             if ret == True:
                 data = rcv_manager.analyze_frame(frame)
                 #rcv_manager.send_data_to_roborio(data)
+                print(data)
             else:
                 break
 
