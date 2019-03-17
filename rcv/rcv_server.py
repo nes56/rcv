@@ -1,8 +1,7 @@
-import configparser
 import constants
 import logging
+from nes56_cv_manager import Nes56CvManager
 import rcv_utils
-import time
 import signal
 
 rcv = None
@@ -27,16 +26,16 @@ class RcvService:
 
     def stop(self):
         self._stop = True
+        self._nes56_cv_manager.stop()
 
     def do_work(self):
-        counter = 1
-        while not self._stop:
-            logging.debug("{}) ##### In loop ...".format(counter))
-            time.sleep(2)
-            counter += 1
-            if counter == 100:
-                self._stop = True
-        logging.info("Exiting ....")
+        logging.debug("Eneterring RcvService.do_work()")
+        with Nes56CvManager(self._conf) as rcv_manager:
+            rcv_manager.connect_to_roborio()
+            rcv_manager.init_video_source()
+            rcv_manager.run_loop()
+        logging.debug("Exiting RcvService.do_work()")
+
 
 
 if __name__ == '__main__':

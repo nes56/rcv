@@ -20,6 +20,7 @@ API_structure = {
 class Nes56CvManager():
     def __init__(self, conf):
         logging.debug("entered Nes56CvManager.__init__(...)")
+        self._stop = False
         self._conf = conf
         self._client_socket = None
         self._cap = None
@@ -120,6 +121,18 @@ class Nes56CvManager():
                         self._camera_height,
                         self._y_leaning_angle,
                         self._x_turning_angle)
+    def stop(self):
+        self._stop = True
+
+    def run_loop(self):
+        while self.is_capture_opened() and not self._stop:
+            ret, frame = self.get_next_frame()
+            if ret == True:
+                data = self.analyze_frame(frame)
+                #rcv_manager.send_data_to_roborio(data)
+                logging.info(data)
+            else:
+                break
 
 
 if __name__ == '__main__':
@@ -128,14 +141,8 @@ if __name__ == '__main__':
     with Nes56CvManager(conf) as rcv_manager:
         rcv_manager.connect_to_roborio()
         rcv_manager.init_video_source()
-        while(rcv_manager.is_capture_opened()):
-            ret, frame = rcv_manager.get_next_frame()
-            if ret == True:
-                data = rcv_manager.analyze_frame(frame)
-                #rcv_manager.send_data_to_roborio(data)
-                print(data)
-            else:
-                break
+        rcv_manager.run_loop()
+
 
 
 
