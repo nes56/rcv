@@ -1,8 +1,6 @@
 import configparser
-import cv2
 import logging
 import logging.config
-import time
 
 
 def load_configuration(config_file):

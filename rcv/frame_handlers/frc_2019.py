@@ -4,8 +4,8 @@ import numpy as np
 import os
 import sys
 
-canstants_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-sys.path.append(canstants_path)
+constants_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(constants_path)
 from constants import X_PIXELS_PER_DEGREE, Y_PIXELS_PER_DEGREE
 
 response_structure = {
@@ -20,17 +20,19 @@ class FrameHandler():
     def __init__(self, configuration):
         self._conf = configuration
         self._frame = None
+        self._output_frame = None
         self._cleaned_frame = None
         self._line_contour = None
         self._points = None
         self._line_contour = None
-        self._y_leaning_angle = None
-        self._x_turning_angle = None
         self._response = None
-        self._show = bool(self._conf.get('rcv_server', 'show'))
+        self._camera_height=float(self._conf.get('rcv_server', 'camera_height'))
+        self._y_leaning_angle=float(self._conf.get('rcv_server', 'y_leaning_angle'))
+        self._x_turning_angle=float(self._conf.get('rcv_server', 'x_turning_angle'))
+        self._show = self._conf.getboolean('rcv_server', 'show')
+        self._frame_threshold= int(self._conf.get('rcv_server', 'frame_threshold'))
         focus_image_path = self._conf.get('rcv_server', 'focus_image')
         if os.path.exists(focus_image_path) and os.path.isfile(focus_image_path):
-            # TODO do we really need the colored focus image
             self._focus_image = cv2.imread(focus_image_path)
             self._focus_image_gray = cv2.imread(focus_image_path, cv2.IMREAD_GRAYSCALE)
         else:
@@ -41,8 +43,8 @@ class FrameHandler():
         self._frame = None
         self._cleaned_frame = None
         self._line_contour = None
-        self._y_leaning_angle = None
-        self._x_turning_angle = None
+        self._output_frame = None
+        self._points = None
         self._response = response_structure.copy()
 
     def line_distance(self, p1, p2):
@@ -59,10 +61,8 @@ class FrameHandler():
         y2 = p2[1]
         return(int((x1 + x2)/2), int((y1 + y2)/2))
 
-    def show_images(self):
-        #cv2.imshow("image", image)
-        #cv2.imshow("cleaned_frame", self._cleaned_frame)
-        # show image with the rectangle marked,
+    def prep_output_image(self):
+        # prepare image with the rectangle marked,
         # if none found will show regular image
         output = self._frame.copy()
         output = cv2.bitwise_and(output, self._focus_image)
@@ -72,7 +72,11 @@ class FrameHandler():
                 -1, (0, 0, 255), 4)
             output = cv2.circle(output, self._points[0], 3, (255, 0, 0), -1)
             output = cv2.circle(output, self._points[1], 3, (0, 255, 0), -1)
-        cv2.imshow("output", output)
+        self._output_frame = output
+
+    def show_images(self):
+        self.prep_output_image()
+        cv2.imshow("output", self._output_frame)
         cv2.waitKey(1)
 
     def extermum_points(self, contour):
@@ -160,7 +164,7 @@ class FrameHandler():
         gray = cv2.cvtColor(self._frame, cv2.COLOR_BGR2GRAY)
         focused_image = cv2.bitwise_and(gray, self._focus_image_gray)
         # use threshold on frame
-        _, thresh = cv2.threshold(focused_image, 230, 255, cv2.THRESH_BINARY)
+        _, thresh = cv2.threshold(focused_image, self._frame_threshold, 255, cv2.THRESH_BINARY)
         # use open to remove white noise from frame
         kernel = np.ones((5, 5), np.uint8)
         thresh_opened = cv2.morphologyEx(
@@ -203,12 +207,9 @@ class FrameHandler():
         d_to_x_y = d_to_x_center_y/math.cos(math.radians(x_diviation_degree))
         return (d_to_x_y, x_diviation_degree)
 
-    def handle_frame(self, frame, camera_height, y_leaning_angle, x_turning_angle):
+    def handle_frame(self, frame):
         self.init_frame_analysis()
         self._frame = frame
-        self._camera_height = camera_height
-        self._y_leaning_angle = y_leaning_angle
-        self._x_turning_angle = x_turning_angle
         # return the points that the program will find the distance to them
         # if get_data got show as True it will display the cleaned image
         # in black and white, the original frame and the frame with the rectangle

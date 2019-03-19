@@ -7,16 +7,6 @@ import socket
 import sys
 
 
-
-# globals
-API_structure = {
-        "front": False,
-        "found": False,
-        "p1": {"d": 0, "a": 0},
-        "p2": {"d": 0, "a": 0},
-    }
-
-
 class Nes56CvManager():
     def __init__(self, conf):
         logging.debug("entered Nes56CvManager.__init__(...)")
@@ -33,10 +23,7 @@ class Nes56CvManager():
         self._roborio_ip = self._conf.get('rcv_server', 'roborio_ip')
         self._roborio_port = int(self._conf.get('rcv_server', 'roborio_port'))
         self._socket_timeout = int(self._conf.get('rcv_server', 'socket_timeout'))
-        self._show = bool(self._conf.get('rcv_server', 'show'))
-        self._camera_height=float(self._conf.get('rcv_server', 'camera_height'))
-        self._y_leaning_angle=float(self._conf.get('rcv_server', 'y_leaning_angle'))
-        self._x_turning_angle=float(self._conf.get('rcv_server', 'x_turning_angle'))
+        self._show = self._conf.getboolean ('rcv_server', 'show')
         # Handling the dynamic load of the frame handler
         self._frame_handler_module = self._conf.get('rcv_server', 'frame_handler')
         self._frame_handlers_dir = self._conf.get('rcv_server', 'frame_handlers_dir')
@@ -45,8 +32,6 @@ class Nes56CvManager():
         self._frame_handler_class = getattr(
             __import__(self._frame_handler_module), "FrameHandler")
         self._frame_handler = self._frame_handler_class(conf)
-
-
 
     def __enter__(self):
         return self
@@ -61,7 +46,7 @@ class Nes56CvManager():
             cv2.destroyAllWindows()
 
     def init_video_source(self):
-        logging.debug("Enetered Nes56CvManager.init_video_source()")
+        logging.debug("Entered Nes56CvManager.init_video_source()")
         self._video_source_type, self._video_source = self._conf.get('rcv_server', 'video_source').split(':')
         print("video_source_type = {}".format(self._video_source_type))
         print("video_source = {}".format(self._video_source))
@@ -111,16 +96,13 @@ class Nes56CvManager():
             self._client_socket.close()
             self._client_socket = None
 
-
     def get_next_frame(self):
         ret, frame = self._cap.read()
         return (ret, frame)
 
     def analyze_frame(self, frame):
-        return self._frame_handler.handle_frame(frame,
-                        self._camera_height,
-                        self._y_leaning_angle,
-                        self._x_turning_angle)
+        return self._frame_handler.handle_frame(frame)
+
     def stop(self):
         self._stop = True
 
@@ -129,7 +111,7 @@ class Nes56CvManager():
             ret, frame = self.get_next_frame()
             if ret == True:
                 data = self.analyze_frame(frame)
-                #rcv_manager.send_data_to_roborio(data)
+                #self.send_data_to_roborio(data)
                 logging.info(data)
             else:
                 break
@@ -142,9 +124,3 @@ if __name__ == '__main__':
         rcv_manager.connect_to_roborio()
         rcv_manager.init_video_source()
         rcv_manager.run_loop()
-
-
-
-
-
-
