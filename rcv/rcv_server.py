@@ -1,49 +1,41 @@
-import configparser
+import constants
 import logging
-import logging.config
-import time
+from nes56_cv_manager import Nes56CvManager
+import rcv_utils
+import signal
+
+rcv = None
 
 
-CONFIGURATION='/opt/rcv/service/rcv_server.conf'
+def exit_gracefully(signum, frame):
+    logging.info("In exit_gracefully({}, {})".format(signum, frame)) 
+    if rcv:
+        rcv.stop()
+
+
+signal.signal(signal.SIGTERM, exit_gracefully)
 
 
 class RcvService:
     def __init__(self):
-        self._stop = False
-        self._roborio_ip = None
-        self._roborio_port = None
-        self.load_configuration()
-        self.init_logging()
-        logging.info("self.__roborio_ip = {}".format(self._roborio_ip))
-        logging.info("self.__roborio_port = {}".format(self._roborio_port))
+        rcv_utils.init_logging(constants.CONFIGURATION)
+        self._conf = rcv_utils.load_configuration(constants.CONFIGURATION)
+        self._rcv_manager = None
 
-    def load_configuration(self):
-        conf = configparser.ConfigParser()
-        conf.read(CONFIGURATION)
-        self._roborio_ip = conf.get('rcv_server', 'roborio_ip')
-        self._roborio_port = conf.get('rcv_server', 'roborio_port')
-
-    def init_logging(self):
-        logging.config.fileConfig(fname=CONFIGURATION)
-        logging.info("Started....")
-
-    def init_threads(self):
-        pass
 
     def stop(self):
-        self._stop = True
+        self._rcv_manager.stop()
 
     def do_work(self):
-        counter = 1
-        while not self._stop:
-            logging.debug("{}) ##### In loop ...".format(counter))
-            time.sleep(2)
-            counter += 1
-            if counter == 10:
-                self._stop = True
+        logging.debug("Entering RcvService.do_work()")
+        with Nes56CvManager(self._conf) as self._rcv_manager:
+            self._rcv_manager.connect_to_roborio()
+            self._rcv_manager.init_video_source()
+            self._rcv_manager.run_loop()
+        logging.debug("Exiting RcvService.do_work()")
+
 
 
 if __name__ == '__main__':
     rcv = RcvService()
     rcv.do_work()
-    logging.info("Exiting ....")
