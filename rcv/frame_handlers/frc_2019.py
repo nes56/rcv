@@ -26,6 +26,8 @@ class FrameHandler():
         self._points = None
         self._line_contour = None
         self._response = None
+        self._is_front = self._conf.getboolean('rcv_server', 'is_front')
+        response_structure['front'] = self._is_front
         self._camera_height=float(self._conf.get('rcv_server', 'camera_height'))
         self._y_leaning_angle=float(self._conf.get('rcv_server', 'y_leaning_angle'))
         self._x_turning_angle=float(self._conf.get('rcv_server', 'x_turning_angle'))
