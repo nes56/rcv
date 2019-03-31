@@ -21,6 +21,7 @@ class Nes56CvManager():
         self._video_source = None
         self._camera_name = None
         self._fps = None
+        self._connected = False
         self._roborio_ip = self._conf.get('rcv_server', 'roborio_ip')
         self._roborio_port = int(self._conf.get('rcv_server', 'roborio_port'))
         self._socket_timeout = int(self._conf.get('rcv_server', 'socket_timeout'))
@@ -83,10 +84,13 @@ class Nes56CvManager():
                 logging.error("couldn't connect "+ str(err))
                 self._client_socket.close()
                 self._client_socket = None
+                self._connected = False
             else:
                 logging.debug("connected")
+                self._connected = True
         except:
             logging.exception("Exception", exc_info=1)
+            self._connected = False
 
     def send_data_to_roborio(self, data):
         logging.debug("entered Nes56CvManager.send_data_to_roborio")
@@ -95,6 +99,7 @@ class Nes56CvManager():
             logging.debug("sent succesfully {}".format(data))
         except socket.error as e:
             logging.error("error in sending " + str(e))
+            self._connected = False
             self._client_socket.close()
             self._client_socket = None
 
@@ -111,13 +116,13 @@ class Nes56CvManager():
     def run_loop(self):
         while self.is_capture_opened() and not self._stop:
             ret, frame = self.get_next_frame()
-            if ret == True:
+            if not self._connected:
+                self.connect_to_roborio()
+            if ret == True and self._connected:
                 data = self.analyze_frame(frame)
                 data['front'] = self._is_front
-                #self.send_data_to_roborio(data)
+                self.send_data_to_roborio(json.dumps(data).encode('utf-8'))
                 logging.info(data)
-            else:
-                break
 
 
 if __name__ == '__main__':
