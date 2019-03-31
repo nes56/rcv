@@ -24,6 +24,7 @@ class Nes56CvManager():
         self._roborio_port = int(self._conf.get('rcv_server', 'roborio_port'))
         self._socket_timeout = int(self._conf.get('rcv_server', 'socket_timeout'))
         self._show = self._conf.getboolean ('rcv_server', 'show')
+        self._is_front = self._conf.getboolean('rcv_server', 'is_front')
         # Handling the dynamic load of the frame handler
         self._frame_handler_module = self._conf.get('rcv_server', 'frame_handler')
         self._frame_handlers_dir = self._conf.get('rcv_server', 'frame_handlers_dir')
@@ -111,6 +112,7 @@ class Nes56CvManager():
             ret, frame = self.get_next_frame()
             if ret == True:
                 data = self.analyze_frame(frame)
+                data['front'] = self._is_front
                 #self.send_data_to_roborio(data)
                 logging.info(data)
             else:

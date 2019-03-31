@@ -9,7 +9,6 @@ sys.path.append(constants_path)
 from constants import X_PIXELS_PER_DEGREE, Y_PIXELS_PER_DEGREE
 
 response_structure = {
-        "front": False,
         "found": False,
         "p1": {"d": 0, "a": 0},
         "p2": {"d": 0, "a": 0},
