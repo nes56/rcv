@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 -u socket_client.py
+ExecStart=/usr/bin/python3 -u rcv_server.py
 WorkingDirectory=/opt/rcv/rcv/
 StandardOutput=inherit
 StandardError=inherit
