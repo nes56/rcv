@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import os
 import sys
+import math
 from find_parameters_by_coordinates import find_distance_and_angle_by_coordinates
 
 
@@ -71,6 +72,10 @@ def do_work(img, from_cap=False):
             x_turning_angle = float(input("x angle = "))
         elif k == ord('y'):
             y_leaning_angle = float(input("y angle = "))
+        elif k == ord('c'):
+            center_distance = float(input("center distance = "))
+            y_leaning_angle = math.degrees(math.atan(camera_height / center_distance))
+            print("y_leaning_angle = " + str(y_leaning_angle))
 
 
 def on_exit():
@@ -135,6 +140,10 @@ def main():
                 x_turning_angle = float(input("x angle = "))
             elif k == ord('y'):
                 y_leaning_angle = float(input("y angle = "))
+            elif k == ord('c'):
+                center_distance = float(input("center distance = "))
+                y_leaning_angle = math.degrees(math.atan(camera_height / center_distance))
+                print("y_leaning_angle = " + str(y_leaning_angle))
 
 
 if __name__ == '__main__':
