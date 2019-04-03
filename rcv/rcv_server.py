@@ -14,6 +14,7 @@ def exit_gracefully(signum, frame):
 
 
 signal.signal(signal.SIGTERM, exit_gracefully)
+signal.signal(signal.SIGINT, exit_gracefully)
 
 
 class RcvService:
